@@ -1,0 +1,41 @@
+version: '3.3'  # Убедись, что версия соответствует твоей версии Docker Compose
+
+services:
+  wireguard:
+    image: lscr.io/linuxserver/wireguard
+    container_name: wireguard
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - SERVERURL=auto #optional
+      - SERVERPORT=51820 #optional
+      - PEERS=4 #optional
+      - PEERDNS=auto #optional
+      - INTERNAL_SUBNET=10.13.13.0 #optional
+      - ALLOWEDIPS=0.0.0.0/0 #optional
+    volumes:
+      - ~/wireguard/config:/config
+      - /lib/modules:/lib/modules
+    ports:
+      - 51820:51820/udp
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+    restart: unless-stopped
+
+  wg_api:
+    container_name: wg_api
+    depends_on:
+      - wireguard
+    restart: unless-stopped
+    build: ./
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/app/logs
+      - ./static:/app/static
+    ports:
+      - "8080:8080"
