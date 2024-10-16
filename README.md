@@ -1,0 +1,2 @@
+# WgApi
+wireguard api
