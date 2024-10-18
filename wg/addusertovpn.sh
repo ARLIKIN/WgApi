@@ -2,6 +2,10 @@
 
 source /etc/wireguard/params
 
+# Определяем путь к папке static относительно местоположения скрипта
+SCRIPT_DIR=$(dirname "$(realpath "$0")")
+STATIC_DIR="${SCRIPT_DIR}/static"
+
 function newClient() {
 	ENDPOINT="${SERVER_PUB_IP}:${SERVER_PORT}"
 	CLIENT_NAME="$1"
@@ -11,7 +15,7 @@ function newClient() {
 			break
 		fi
 	done
-	
+
 	if [[ ${DOT_EXISTS} == '1' ]]; then
 		echo ""
 		echo "The subnet configured supports only 253 clients."
@@ -48,23 +52,7 @@ function newClient() {
 	CLIENT_PRE_SHARED_KEY=$(wg genpsk)
 
 	# Home directory of the user, where the client configuration will be written
-	if [ -e "/home/${CLIENT_NAME}" ]; then
-		# if $1 is a user name
-#		HOME_DIR="/home/${CLIENT_NAME}"
-		HOME_DIR="/root/WG_app/static"
-	elif [ "${SUDO_USER}" ]; then
-		# if not, use SUDO_USER
-		if [ "${SUDO_USER}" == "root" ]; then
-			# If running sudo as root
-			HOME_DIR="/root/WG_app/static"
-		else
-#			HOME_DIR="/home/${SUDO_USER}"
-			HOME_DIR="/root/WG_app/static"
-		fi
-	else
-		# if not SUDO_USER, use /root
-		HOME_DIR="/root/WG_app/static"
-	fi
+	HOME_DIR="${STATIC_DIR}"
 
 	# Create client file and add the server as a peer
 	echo "[Interface]

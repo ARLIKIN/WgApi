@@ -1,15 +1,18 @@
-from flask import Flask, request, make_response, jsonify
 import os
 import json
 import subprocess
 
+from flask import Flask, request, make_response, jsonify
+
 app = Flask(__name__)
+
+DIR_KEY = 'wg/static/wg0-client-{name}.conf'
 
 
 @app.route("/len", methods=['GET'])
 def get_user_count():
-    DIR = '/root/WG_app/static'
-    user_count = sum([len(files) for r, d, files in os.walk(DIR)])
+    dir = 'wg/static'
+    user_count = sum([len(files) for r, d, files in os.walk(dir)])
     return {"user_count": user_count}
 
 
@@ -21,19 +24,15 @@ def create_user():
         return make_response(
             jsonify({"success": False, "error": "Not Authorized"}), 401)
 
-    config_path = f'/app/static/wg0-client-{str(key)}.conf'
+    if not os.path.isfile(DIR_KEY.format(name=str(key))):
+        subprocess.call(f'wg/addusertovpn.sh {str(key)}', shell=True)
 
-    if not os.path.isfile(config_path):
-        subprocess.call(
-            f'/bin/bash /app/sh/addusertovpn.sh {str(key)}',
-            shell=True
-        )
-
-    if os.path.isfile(config_path):
-        with open(config_path, "r") as file:
+    if os.path.isfile(DIR_KEY.format(name=str(key))):
+        with open(DIR_KEY.format(name=str(key)), "r") as file:
             config_content = file.read()
-        return make_response(config_content, 200,
-                             {'Content-Type': 'text/plain'})
+            result = {'config': config_content}
+        return make_response(result, 200,
+                             {'Content-Type': 'json'})
     else:
         return make_response(
             jsonify(
@@ -51,12 +50,7 @@ def delete_user():
         return make_response({"success": False, "error": "Not Authorized"},
                              401)
 
-    subprocess.call(f'/sh/deleteuserfromvpn.sh {str(key)}',
-                    shell=True)
-    config_path = f'/root/WG_app/static/wg0-client-{str(key)}.conf'
-    if os.path.isfile(config_path):
-        os.remove(config_path)
-
+    subprocess.call(f'wg/deleteuserfromvpn.sh {str(key)}', shell=True)
     return {"success": True}
 
 
@@ -67,12 +61,14 @@ def get_config():
     if not key:
         return make_response({"success": False, "error": "Not Authorized"},
                              401)
-
-    config_path = f'/root/WG_app/static/wg0-client-{str(key)}.conf'
-    if os.path.isfile(config_path):
-        with open(config_path, 'r') as file:
+    if os.path.isfile(DIR_KEY.format(name=str(key))):
+        with open(DIR_KEY.format(name=str(key)), 'r') as file:
             config_data = file.read()
-        return {"config": config_data}
+        return make_response(
+            {"config": config_data},
+            200,
+            {'Content-Type': 'json'}
+        )
     else:
         return make_response(
             {"success": False, "error": "Config not found"}, 404
