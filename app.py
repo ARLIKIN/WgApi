@@ -1,60 +1,19 @@
 import os
-import subprocess
-from functools import wraps
 
 from http import HTTPStatus
-from dotenv import load_dotenv
 from flask import Flask, request, jsonify, make_response
 
-load_dotenv()
+from service.config import STATIC_DIR, DIR_KEY_TEMPLATE, HOST, PORT
+from service.service import (
+    auth_required,
+    error_check_exist_user_id,
+    execute_command,
+    read_config,
+    return_config,
+    error_not_found_config
+)
 
 app = Flask(__name__)
-
-DIR_KEY_TEMPLATE = 'wg/static/wg0-client-{name}.conf'
-STATIC_DIR = 'wg/static'
-ADMIN_USERNAME = os.getenv('ADMIN_USERNAME')
-ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')
-
-
-def execute_command(command):
-    try:
-        subprocess.run(command, shell=True, check=True)
-    except subprocess.CalledProcessError as e:
-        app.logger.error(f"Error executing command: {command}, {e}")
-        return False
-    return True
-
-
-def read_config(key):
-    config_path = DIR_KEY_TEMPLATE.format(name=key)
-    if os.path.isfile(config_path):
-        with open(config_path, 'r') as file:
-            return file.read()
-    return None
-
-
-def auth_required(f):
-    @wraps(f)
-    def decorator(*args, **kwargs):
-        auth = request.authorization
-        if (
-            not auth or auth.username != ADMIN_USERNAME
-            or auth.password != ADMIN_PASSWORD
-        ):
-            return make_response(
-                jsonify({"success": False, "error": "Not Authorized"}),
-                HTTPStatus.UNAUTHORIZED
-            )
-        return f(*args, **kwargs)
-    return decorator
-
-
-def error_check_exist_user_id():
-    return make_response(
-        jsonify({"success": False, "error": "Not user id"}),
-        HTTPStatus.BAD_REQUEST
-    )
-
 
 @app.route("/len", methods=['GET'])
 @auth_required
@@ -71,7 +30,7 @@ def create_user():
     if not key:
        return error_check_exist_user_id()
     if not os.path.isfile(DIR_KEY_TEMPLATE.format(name=key)):
-        if not execute_command(f'wg/add_user.sh {key}'):
+        if not execute_command(f'wg/add_user.sh {key}', app):
             return make_response(
                 jsonify(
                     {"success": False, "error": "Failed to create user"}
@@ -81,17 +40,9 @@ def create_user():
 
     config_content = read_config(key)
     if config_content:
-        return make_response(
-            jsonify({"success": True, "config": config_content}),
-            HTTPStatus.OK
-        )
+        return return_config(config_content)
     else:
-        return make_response(
-            jsonify(
-                {"success": False, "error": "Configuration file not found"}
-            ),
-            HTTPStatus.NOT_FOUND
-        )
+        return error_not_found_config()
 
 
 @app.route("/deleteWG", methods=['DELETE'])
@@ -101,7 +52,7 @@ def delete_user():
     key = js.get('name_key')
     if not key:
         return error_check_exist_user_id()
-    if not execute_command(f'wg/delete_user.sh {key}'):
+    if not execute_command(f'wg/delete_user.sh {key}', app):
         return make_response(
             jsonify(
                 {"success": False, "error": "Failed to delete user"}
@@ -120,18 +71,12 @@ def get_config():
        return error_check_exist_user_id()
     config_content = read_config(key)
     if config_content:
-        return make_response(
-            jsonify({"config": config_content}),
-            HTTPStatus.OK
-        )
+        return return_config(config_content)
     else:
-        return make_response(
-            jsonify({"success": False, "error": "Config not found"}),
-            HTTPStatus.NOT_FOUND
-        )
+        return error_not_found_config()
 
 
 if __name__ == '__main__':
-    host = os.getenv('FLASK_HOST', '0.0.0.0')
-    port = int(os.getenv('FLASK_PORT', 8080))
+    host = HOST
+    port = PORT
     app.run(host=host, port=port)
