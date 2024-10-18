@@ -1,8 +1,8 @@
 import os
 
 from dotenv import load_dotenv
-load_dotenv()
 
+load_dotenv()
 
 
 DIR_KEY_TEMPLATE = 'wg/static/wg0-client-{name}.conf'
