@@ -77,6 +77,4 @@ def get_config():
 
 
 if __name__ == '__main__':
-    host = HOST
-    port = PORT
-    app.run(host=host, port=port)
+    app.run(host=HOST, port=PORT)
