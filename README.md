@@ -161,3 +161,13 @@ sudo systemctl restart ApiWg
 Возвращает содержимое конфигурации пользователя с кодом `200 OK`.
 
 ---
+
+
+### Сэк используемых технологий
+ * [**Python 3.11**](https://www.python.org/downloads/release/python-390/)
+ * [**Flask 3.0.3**](https://flask.palletsprojects.com/en/3.0.x/)
+
+
+### Список разработчиков проекта:
+* [**ARLIKIN**](https://github.com/ARLIKIN)
+* [**Obi0Wan0Kenobi**](https://github.com/Obi0Wan0Kenobi)
