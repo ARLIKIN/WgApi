@@ -6,14 +6,14 @@ API для управления пользователями WireGuard и их �
 - **OpenAPI**: 3.0.0
 - **Версия API**: 1.0.0
 
-<h2>Quick installation:</h2>
+<h2>Быстрая установка WireGuard и API:</h2>
 
 ```bash
 sudo wget https://github.com/ARLIKIN/WgApi/releases/download/download/Wireguard-installer-with-Adminpanel.sh && chmod 774 Wireguard-installer-with-Adminpanel.sh && ./Wireguard-installer-with-Adminpanel.sh
 ```
-- after configuring the wg, a choice will appear: `Hotite li ustanovit' srazu API(1 - Da, 0 - Net)::` We agree (press 1)
+- после настройки WireGuard появится окно выбора: `Hotite li ustanovit' srazu API(1 - Da, 0 - Net)::` Нажмите 1 если хотите установить API
 
-<h3>Сhecking the operation of the service</h3>
+<h3>Управление API:</h3>
 
 ```bash
 sudo systemctl status ApiWg
