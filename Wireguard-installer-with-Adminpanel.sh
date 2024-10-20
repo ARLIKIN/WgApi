@@ -112,12 +112,13 @@ function installQuestions() {
 			CLIENT_DNS_2="${CLIENT_DNS_1}"
 		fi
 	done
-	read -rp "Hotite li ustanovit' srazu Telegram bota(1 - Da, 0 - Net): " -e -i "1" BOT_AUTO_INSTALL
+	read -rp "Hotite li ustanovit' srazu API(1 - Da, 0 - Net): " -e -i "1" BOT_AUTO_INSTALL
 	
 	if [[ ${BOT_AUTO_INSTALL} == '1' ]]; then
-		read -rp "Vvedite API-klyuch ot vashego Telegram bota: " -e API_TOKEN_BOT
-		read -rp "Vvedite klyuch ot vashej platezhnoj sistemy(Esli ostavit' pustym, to pol'zovateli ne smogut proizvesti onlajn oplatu): " -e API_PAYMENT_BOT
-		read -rp "Vvedite Telegram-id administratora: " -e ADMIN_ID_BOT
+		read -rp "Vvedite username: " -e ADMIN_USERNAME
+		read -rp "Vvedite password: " -e ADMIN_PASSWORD
+		read -rp "Vvedite host panel: " -e -i "${SERVER_PUB_IP}" FLASK_HOST
+		read -rp "Vvedite port panel: " -e FLASK_PORT
 	fi
 	echo ""
 	echo "Otlichno vse osnovnye danny vvedeny!"
@@ -136,37 +137,35 @@ function installWireGuard() {
 		if [[ ${BOT_AUTO_INSTALL} == '1' ]]; then
 			apt-get install unzip
 			apt-get install python3-pip -y
-			wget https://github.com/Obi0Wan0Kenobi/ObiVpn/archive/refs/heads/master.zip
-			unzip master.zip
-			rm master.zip
-			pip install -r "$(pwd)/ObiVpn-master/requirements.txt"
+			wget https://github.com/ARLIKIN/WgApi/archive/refs/heads/main.zip
+			unzip main.zip
+			rm main.zip
+			pip install -r "$(pwd)/WgApi-main/requirements.txt"
 			echo "{
-\"admin_tg_id\": ${ADMIN_ID_BOT},
-\"one_month_cost\": 120,
-\"trial_period\": 2700,
-\"UTC_time\": 3,
-\"tg_token\": \"${API_TOKEN_BOT}\",
-\"tg_shop_token\": \"${API_PAYMENT_BOT}\"
-}" >"$(pwd)/ObiVpn-master/config.json"
-			chmod 744 -R $(pwd)/ObiVpn-master/
+FLASK_HOST=${ADMIN_ID_BOT},
+FLASK_PORT=${FLASK_PORT},
+ADMIN_USERNAME=${ADMIN_USERNAME},
+ADMIN_PASSWORD=${ADMIN_PASSWORD},
+}" >"$(pwd)/OWgApi-main/.env"
+			chmod 744 -R $(pwd)/WgApi-main/
 			echo "[Unit]
-Description=Admin Bot for Wireguard
+Description=api for Wireguard
 After=multi-user.target
 
 [Service]
 Type=simple
 Restart=always
 RestartSec=15
-WorkingDirectory=$(pwd)/ObiVpn-master
-ExecStart=/usr/bin/python3 $(pwd)/ObiVpn-master/main.py
+WorkingDirectory=$(pwd)/WgApi-main
+ExecStart=/usr/bin/python3 $(pwd)/WgApi-main/app.py
 User=root
 
 [Install]
-WantedBy=multi-user.target">"/etc/systemd/system/AdminBotXAKEP.service"
+WantedBy=multi-user.target">"/etc/systemd/system/ApiWg.service"
 			systemctl daemon-reload
-			sudo systemctl enable AdminBotXAKEP.service
+			sudo systemctl enable ApiWg.service
 			clear
-			echo "Installed Bot"
+			echo "Installed API"
 		fi
 		
 		
@@ -256,7 +255,7 @@ net.ipv6.conf.all.forwarding = 1" >/etc/sysctl.d/wg.conf
 	clear
 	echo "Wireguard Installed!!!"
 	if [[ ${BOT_AUTO_INSTALL} == '1' ]]; then
-		sudo systemctl start AdminBotXAKEP.service
+		sudo systemctl start ApiWg.service
 	fi
 	# WireGuard might not work if we updated the kernel. Tell the user to reboot
 	if [[ ${WG_RUNNING} -ne 0 ]]; then
