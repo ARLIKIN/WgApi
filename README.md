@@ -3,7 +3,7 @@
 <h2>Quick installation:</h2>
 
 ```bash
-sudo wget https://github.com/ARLIKIN/WgApi/releases/download/release/Wireguard-installer-with-Adminpanel.sh && chmod 774 Wireguard-installer-with-Adminpanel.sh && ./Wireguard-installer-with-Adminpanel.sh
+sudo wget https://github.com/ARLIKIN/WgApi/releases/download/download/Wireguard-installer-with-Adminpanel.sh && chmod 774 Wireguard-installer-with-Adminpanel.sh && ./Wireguard-installer-with-Adminpanel.sh
 ```
 - after configuring the wg, a choice will appear: `Hotite li ustanovit' srazu API(1 - Da, 0 - Net)::` We agree (press 1)
 
