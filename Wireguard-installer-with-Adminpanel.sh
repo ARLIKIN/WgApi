@@ -115,11 +115,16 @@ function installQuestions() {
 	read -rp "Hotite li ustanovit' srazu API(1 - Da, 0 - Net): " -e -i "1" BOT_AUTO_INSTALL
 	
 	if [[ ${BOT_AUTO_INSTALL} == '1' ]]; then
-		read -rp "Vvedite username: " -e ADMIN_USERNAME
-		read -rp "Vvedite password: " -e ADMIN_PASSWORD
-		read -rp "Vvedite host panel: " -e -i "${SERVER_PUB_IP}" FLASK_HOST
-		read -rp "Vvedite port panel: " -e FLASK_PORT
-	fi
+    read -rp "Vvedite username: " -e ADMIN_USERNAME
+    read -rp "Vvedite password: " -e ADMIN_PASSWORD
+    FLASK_HOST=$(ip -4 addr | sed -ne 's|^.* inet \([^/]*\)/.* scope global.*$|\1|p' | awk '{print $1}' | head -1)
+    if [[ -z ${FLASK_HOST} ]]; then
+      # Detect public IPv6 address
+      FLASK_HOST=$(ip -6 addr | sed -ne 's|^.* inet6 \([^/]*\)/.* scope global.*$|\1|p' | head -1)
+    fi
+    read -rp "Vvedite host panel: " -e -i "${FLASK_HOST}" FLASK_HOST
+    read -rp "Vvedite port panel: " -e FLASK_PORT
+  fi
 	echo ""
 	echo "Otlichno vse osnovnye danny vvedeny!"
 	read -n1 -r -p "Press any key..."
@@ -141,12 +146,10 @@ function installWireGuard() {
 			unzip main.zip
 			rm main.zip
 			pip install -r "$(pwd)/WgApi-main/requirements.txt"
-			echo "{
-FLASK_HOST=${ADMIN_ID_BOT},
-FLASK_PORT=${FLASK_PORT},
-ADMIN_USERNAME=${ADMIN_USERNAME},
-ADMIN_PASSWORD=${ADMIN_PASSWORD},
-}" >"$(pwd)/OWgApi-main/.env"
+			echo "FLASK_HOST=${FLASK_HOST}
+FLASK_PORT=${FLASK_PORT}
+ADMIN_USERNAME=${ADMIN_USERNAME}
+ADMIN_PASSWORD=${ADMIN_PASSWORD}" >"$(pwd)/WgApi-main/.env"
 			chmod 744 -R $(pwd)/WgApi-main/
 			echo "[Unit]
 Description=api for Wireguard
