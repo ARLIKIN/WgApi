@@ -22,6 +22,28 @@ def get_user_count():
     return jsonify({"success": True, "user_count": user_count})
 
 
+@app.route("/users", methods=['GET'])
+@auth_required
+def get_users():
+    try:
+        users = [
+            os.path.splitext(file)[0]
+            for file in os.listdir(STATIC_DIR)
+            if file.endswith('.conf') and os.path.isfile(
+                os.path.join(STATIC_DIR, file)
+            )
+        ]
+        return jsonify({"success": True, "users": users})
+    except Exception as e:
+        app.logger.error(f"Error fetching users: {e}")
+        return make_response(
+            jsonify(
+                {"success": False, "error": "Failed to retrieve users"}
+            ),
+            HTTPStatus.INTERNAL_SERVER_ERROR
+        )
+
+
 @app.route("/createWG", methods=['POST'])
 @auth_required
 def create_user():
