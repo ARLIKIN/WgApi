@@ -13,6 +13,12 @@ sudo wget https://github.com/ARLIKIN/WgApi/releases/download/download/Wireguard-
 ```
 - после настройки WireGuard появится окно выбора: `Hotite li ustanovit' srazu API(1 - Da, 0 - Net)::` Нажмите 1 если хотите установить API
 
+<h2>Быстрая установка API:</h2>
+
+```bash
+sudo wget https://github.com/ARLIKIN/WgApi/releases/download/download/Api_installer.sh && chmod 774 Api_installer.sh && ./Api_installer.sh
+```
+
 <h3>Управление API:</h3>
 
 ```bash
